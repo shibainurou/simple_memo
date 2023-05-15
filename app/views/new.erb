@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="jp">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/main.css">
+    <title>Create</title>
+  </head>
+  <body>
+    <h1>MEMOアプリ</h1>
+    <form action="/save" method="post">
+      <div class="form-items">
+        <div class="form-items__item">
+          <div>
+            <label>Title:</label>
+          </div>
+          <div>
+            <input type="text" id="title" name="title" required>
+          </div>
+        </div>
+        <div class="form-items__item">
+          <div>
+            <label>Description:</label>
+          </div>
+          <div>
+            <textarea id="content" name="content" rows="4" cols="50" required></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="button-container">
+        <input type="submit" value="Save" class="form">
+      </div>
+    </form>
+    <div class="button-container">
+      <form action="/" method="get" class="form">
+        <input type="submit" value="Back">
+      </form>
+    </div>
+  </body>
+</html>
