@@ -8,31 +8,32 @@ require 'sinatra/reloader'
 set :erb, escape_html: true
 
 CONTENT_FILE_PATH = 'resource/todo.json'
-ID_NUMBERING_FILE_PATH = 'resource/id_numbering'
+ID_NUMBERING_FILE_PATH = 'resource/id_numbering.txt'
 
 set :views, (proc { File.join(Sinatra::Application.root, 'app', 'views') })
 
-enable :sessions
 enable :method_override
-
-Memo = Struct.new(:id, :title, :content)
 
 before do
   content_type :html, 'charset' => 'utf-8'
 end
 
 get '/' do
-  erb :index
+  redirect '/memos'
 end
 
-get '/add' do
+get '/memos' do
+  erb :memos
+end
+
+get '/memos/new' do
   erb :new
 end
 
-post '/save' do
+post '/memos' do
   data = JSON.parse(read_memos)
 
-  new_id = numbering_id
+  new_id = number_id
   new_data = {
     'id' => new_id,
     'title' => params[:title],
@@ -42,12 +43,12 @@ post '/save' do
   data << new_data
   write_memos(data)
 
-  redirect '/'
+  redirect '/memos'
 end
 
-patch '/update' do
+patch '/memos/:id' do
   data = JSON.parse(read_memos)
-  update_data = data.find { |x| x['id'].to_i == session[:id].to_i }
+  update_data = data.find { |x| x['id'].to_i == params[:id].to_i }
 
   unless update_data.nil?
     puts update_data
@@ -57,19 +58,18 @@ patch '/update' do
     write_memos(data)
   end
 
-  redirect '/'
+  redirect '/memos'
 end
 
-delete '/delete' do
+delete '/memos/:id' do
   data = JSON.parse(read_memos)
-  data.delete_if { |x| x['id'].to_i == session[:id].to_i }
+  data.delete_if { |x| x['id'].to_i == params[:id].to_i }
 
   write_memos(data)
-  redirect '/'
+  redirect '/memos'
 end
 
-get '/detail' do
-  @target = { id: params[:id] }
+get '/memos/:id' do
   session[:id] = params[:id]
   erb :detail
 end
@@ -86,11 +86,16 @@ get '/api/memos/:id' do
 end
 
 def read_memos
-  File.read(CONTENT_FILE_PATH)
+  if File.exist?(CONTENT_FILE_PATH)
+    File.read(CONTENT_FILE_PATH)
+  else
+    '[]'
+  end
 end
 
-def numbering_id
-  last_id_number = File.read(ID_NUMBERING_FILE_PATH)
+def number_id
+  last_id_number = 0
+  last_id_number = File.read(ID_NUMBERING_FILE_PATH) if File.exist?(ID_NUMBERING_FILE_PATH)
   new_id_number = last_id_number.to_i + 1
 
   File.open(ID_NUMBERING_FILE_PATH, 'w') do |numbering_file|

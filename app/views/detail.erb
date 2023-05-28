@@ -13,7 +13,7 @@
       const id=<%= params[:id] %>
     </script>
     <h1>MEMOアプリ</h1>
-    <form action="/update" method="post">
+    <form action="/memos/<%= params[:id] %>" method="post">
       <div class="form-items">
         <div class="form-items__item">
           <div>
@@ -39,13 +39,13 @@
       </div>
     </form>
     <div class="button-container">
-      <form action="/delete" method="post" class="form">
+      <form action="/memos/<%= params[:id] %>" method="post" class="form">
         <input type="hidden" name="_method" value="delete">
         <input type="submit" value="Delete" id="delete_button">
       </form>
     </div>
     <div class="button-container">
-      <form action="/" method="get" class="form">
+      <form action="/memos" method="get" class="form">
         <input type="submit" value="Back">
       </form>
     </div>
