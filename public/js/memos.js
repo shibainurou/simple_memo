@@ -1,8 +1,7 @@
 // Initialize
 document.addEventListener("DOMContentLoaded", async function() {
     const response = await fetch('/api/memos');
-    const json = await response.json();
-    const memos = JSON.parse(json);
+    const memos = await response.json();
 
     const ul = document.createElement('ul');
     memos.forEach(item => {

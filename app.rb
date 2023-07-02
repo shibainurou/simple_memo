@@ -4,15 +4,14 @@ require 'json'
 require 'sinatra'
 require 'erubis'
 require 'sinatra/reloader'
+require 'pg'
 
 set :erb, escape_html: true
-
-CONTENT_FILE_PATH = 'resource/todo.json'
-ID_NUMBERING_FILE_PATH = 'resource/id_numbering.txt'
-
 set :views, (proc { File.join(Sinatra::Application.root, 'app', 'views') })
-
 enable :method_override
+
+ID_NUMBERING_FILE_PATH = 'resource/id_numbering.txt'
+@db_conn = nil
 
 before do
   content_type :html, 'charset' => 'utf-8'
@@ -31,8 +30,6 @@ get '/memos/new' do
 end
 
 post '/memos' do
-  data = JSON.parse(read_memos)
-
   new_id = number_id
   new_data = {
     'id' => new_id,
@@ -40,32 +37,27 @@ post '/memos' do
     'content' => params[:content]
   }
 
-  data << new_data
-  write_memos(data)
+  insert_memo(new_data)
 
   redirect '/memos'
 end
 
 patch '/memos/:id' do
-  data = JSON.parse(read_memos)
-  update_data = data.find { |x| x['id'].to_i == params[:id].to_i }
-
+  update_data = read_memos.find { |x| x['id'].to_i == params[:id].to_i }
   unless update_data.nil?
-    puts update_data
-    update_data[:title] = params[:title]
-    update_data[:content] = params[:content]
+    update_data['title'] = params[:title]
+    update_data['content'] = params[:content]
 
-    write_memos(data)
+    update_memo(update_data)
   end
 
   redirect '/memos'
 end
 
 delete '/memos/:id' do
-  data = JSON.parse(read_memos)
-  data.delete_if { |x| x['id'].to_i == params[:id].to_i }
+  delete_memo = read_memos.find { |x| x['id'].to_i == params[:id].to_i }
 
-  write_memos(data)
+  delete_memo(delete_memo)
   redirect '/memos'
 end
 
@@ -79,18 +71,23 @@ get '/api/memos' do
 end
 
 get '/api/memos/:id' do
-  file = read_memos
-  memo_data = JSON.parse(file)
+  memo_data = read_memos
   target = memo_data.find { |x| x['id'].to_i == params[:id].to_i }
   target.to_json
 end
 
 def read_memos
-  if File.exist?(CONTENT_FILE_PATH)
-    File.read(CONTENT_FILE_PATH)
-  else
-    '[]'
+  results = []
+
+  db_connection.exec('SELECT * FROM memos ORDER BY id').each do |row|
+    results << {
+      'id' => row['id'].to_i,
+      'title' => row['title'],
+      'content' => row['description']
+    }
   end
+
+  results
 end
 
 def number_id
@@ -105,8 +102,23 @@ def number_id
   new_id_number
 end
 
-def write_memos(data)
-  File.open(CONTENT_FILE_PATH, 'w') do |content_file|
-    content_file.puts data.to_json
-  end
+def db_connection
+  @db_conn = connect_db if @db_conn.nil?
+  @db_conn
+end
+
+def connect_db
+  PG::Connection.open(dbname: 'memo_app')
+end
+
+def insert_memo(data)
+  db_connection.exec('INSERT INTO memos (id, title, description) VALUES ($1, $2, $3)', [data['id'], data['title'], data['content']])
+end
+
+def update_memo(data)
+  db_connection.exec('UPDATE memos SET title = $1, description = $2 WHERE id = $3', [data['title'], data['content'], data['id']])
+end
+
+def delete_memo(data)
+  db_connection.exec('DELETE FROM memos WHERE id = $1', [data['id']])
 end
