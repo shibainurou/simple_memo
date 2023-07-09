@@ -43,13 +43,7 @@ post '/memos' do
 end
 
 patch '/memos/:id' do
-  update_data = read_memos.find { |x| x['id'].to_i == params[:id].to_i }
-  unless update_data.nil?
-    update_data['title'] = params[:title]
-    update_data['content'] = params[:content]
-
-    update_memo(update_data)
-  end
+  update_memo(params) unless read_memos.find { |x| x['id'].to_i == params[:id].to_i }.nil?
 
   redirect '/memos'
 end
