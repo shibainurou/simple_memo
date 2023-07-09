@@ -77,17 +77,13 @@ get '/api/memos/:id' do
 end
 
 def read_memos
-  results = []
-
-  db_connection.exec('SELECT * FROM memos ORDER BY id').each do |row|
-    results << {
+  db_connection.exec('SELECT * FROM memos ORDER BY id').map do |row|
+    {
       'id' => row['id'].to_i,
       'title' => row['title'],
       'content' => row['description']
     }
   end
-
-  results
 end
 
 def number_id
