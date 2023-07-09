@@ -10,7 +10,6 @@ set :erb, escape_html: true
 set :views, (proc { File.join(Sinatra::Application.root, 'app', 'views') })
 enable :method_override
 
-ID_NUMBERING_FILE_PATH = 'resource/id_numbering.txt'
 @db_connection = nil
 
 before do
@@ -30,9 +29,7 @@ get '/memos/new' do
 end
 
 post '/memos' do
-  new_id = number_id
   new_data = {
-    'id' => new_id,
     'title' => params[:title],
     'content' => params[:content]
   }
@@ -80,18 +77,6 @@ def read_memos
   end
 end
 
-def number_id
-  last_id_number = 0
-  last_id_number = File.read(ID_NUMBERING_FILE_PATH) if File.exist?(ID_NUMBERING_FILE_PATH)
-  new_id_number = last_id_number.to_i + 1
-
-  File.open(ID_NUMBERING_FILE_PATH, 'w') do |numbering_file|
-    numbering_file.puts new_id_number.to_s
-  end
-
-  new_id_number
-end
-
 def db_connection
   @db_connection ||= connect_db
 end
@@ -101,7 +86,7 @@ def connect_db
 end
 
 def insert_memo(memo_data)
-  db_connection.exec('INSERT INTO memos (id, title, description) VALUES ($1, $2, $3)', [memo_data['id'], memo_data['title'], memo_data['content']])
+  db_connection.exec('INSERT INTO memos (title, description) VALUES ($1, $2)', [memo_data['title'], memo_data['content']])
 end
 
 def update_memo(memo_data)
