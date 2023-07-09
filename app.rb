@@ -11,7 +11,7 @@ set :views, (proc { File.join(Sinatra::Application.root, 'app', 'views') })
 enable :method_override
 
 ID_NUMBERING_FILE_PATH = 'resource/id_numbering.txt'
-@db_conn = nil
+@db_connection = nil
 
 before do
   content_type :html, 'charset' => 'utf-8'
@@ -99,8 +99,7 @@ def number_id
 end
 
 def db_connection
-  @db_conn = connect_db if @db_conn.nil?
-  @db_conn
+  @db_connection ||= connect_db
 end
 
 def connect_db
