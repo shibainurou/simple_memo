@@ -85,14 +85,14 @@ def connect_db
   PG::Connection.open(dbname: 'memo_app')
 end
 
-def insert_memo(memo_data)
-  db_connection.exec('INSERT INTO memos (title, description) VALUES ($1, $2)', [memo_data['title'], memo_data['content']])
+def insert_memo(memo)
+  db_connection.exec('INSERT INTO memos (title, description) VALUES ($1, $2)', [memo['title'], memo['content']])
 end
 
-def update_memo(memo_data)
-  db_connection.exec('UPDATE memos SET title = $1, description = $2 WHERE id = $3', [memo_data['title'], memo_data['content'], memo_data['id']])
+def update_memo(memo)
+  db_connection.exec('UPDATE memos SET title = $1, description = $2 WHERE id = $3', [memo['title'], memo['content'], memo['id']])
 end
 
-def delete_memo(memo_data)
-  db_connection.exec('DELETE FROM memos WHERE id = $1', [memo_data['id']])
+def delete_memo(memo)
+  db_connection.exec('DELETE FROM memos WHERE id = $1', [memo['id']])
 end
